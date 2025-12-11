@@ -48,7 +48,7 @@ jobs:
 
       - name: Run Snyk test (only if Node project found)
         if: env.PROJECT_DIR != ''
-        uses: snyk/actions/node@v1
+        uses: snyk/actions/node@v3
         with:
           args: test
         env:

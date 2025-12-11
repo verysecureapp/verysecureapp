@@ -9,7 +9,7 @@
 
 ## Reporting a Vulnerability
 
-To report a vulnerability make an issue with the fallowing template:
+To report a vulnerability make an issue with the following template:
 
 **TITLE**
 

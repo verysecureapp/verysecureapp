@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secure OTP Messenger</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Secure OTP Messenger</div>
+    <div class="user-pill" id="user-pill">Niet ingelogd</div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <p class="eyebrow">ASVS L3 aligned</p>
+        <h1>End-to-end OTP messaging</h1>
+        <p class="lede">Minimalistische interface, maximale veiligheid. Meld je aan om versleuteld te communiceren.</p>
+        <div class="actions">
+          <button class="primary" id="btn-scroll-auth">Aanmelden</button>
+          <button class="ghost" id="btn-scroll-auth-2">Registreren</button>
+        </div>
+      </div>
+      <div class="panel glass">
+        <h3>Authenticatie</h3>
+        <div id="auth">
+          <div class="stack">
+            <label>OAuth / SSO (aanbevolen)</label>
+            <button class="primary" id="btn-oauth">Login met OAuth / IdP</button>
+            <p class="hint">Zodra OAuth/Firebase is geconfigureerd opent dit de provider flow.</p>
+          </div>
+          <div class="stack">
+            <label>Registreren</label>
+            <input id="reg-email" type="email" placeholder="Email">
+            <input id="reg-pass" type="password" placeholder="Wachtwoord (12+ tekens)">
+            <button class="primary" id="btn-register">Registreer</button>
+          </div>
+          <div class="stack">
+            <label>Inloggen</label>
+            <input id="log-email" type="email" placeholder="Email">
+            <input id="log-pass" type="password" placeholder="Wachtwoord">
+            <button class="secondary" id="btn-login">Login</button>
+          </div>
+          <p class="hint">Placeholder voor productie: OAuth/Firebase + MFA/WebAuthn; local login is enkel voor ontwikkeling.</p>
+          <div id="token-status" class="status"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid" id="app-sections" hidden>
+      <div class="panel glass">
+        <div class="panel-head">
+          <h2>Bericht versturen</h2>
+          <span class="badge">OTP 1x key</span>
+        </div>
+        <input id="msg-recipient" type="email" placeholder="Ontvanger email">
+        <textarea id="msg-body" rows="4" placeholder="Plaintext bericht"></textarea>
+        <input id="msg-note" type="text" placeholder="Optionele note (niet versleuteld)">
+        <button class="primary" id="btn-send">Verstuur</button>
+        <div id="send-status" class="status"></div>
+      </div>
+
+      <div class="panel glass">
+        <div class="panel-head">
+          <h2>Inbox</h2>
+          <div>
+            <button class="secondary" id="btn-refresh">Vernieuw</button>
+          </div>
+        </div>
+        <p class="hint">OTP key wordt éénmalig getoond en daarna ongeldig gemaakt.</p>
+        <div id="inbox" class="list"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <small>Roadmap: OAuth/Firebase, MFA, secure cookies, CSP/HSTS.</small>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
+

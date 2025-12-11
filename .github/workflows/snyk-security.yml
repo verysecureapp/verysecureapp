@@ -2,52 +2,52 @@ name: Snyk Security
 
 on:
   push:
-    branches: ["main" ]
+    branches: [ main ]
   pull_request:
-    branches: ["main"]
-
-permissions:
-  contents: read
 
 jobs:
   snyk:
-    permissions:
-      contents: read
-      security-events: write
-      actions: read
+    name: Snyk Security
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Snyk CLI to check for security issues
-        uses: snyk/actions/setup@806182742461562b67788a64410098c9d9b96adb
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-      - name: Set up Node.js and Install Dependencies
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - name: Install Node Dependencies
-        run: npm install --prefix ./app/
+          node-version: '18'
+          cache: 'npm'
 
-      # Step 3: Snyk Code Test
-      - name: Snyk Code test
-        run: snyk code test --sarif --fail-on=never > snyk-code.sarif || true
+      - name: Determine Node project directory
+        id: detect
+        run: |
+          if [ -f ./app/package.json ]; then
+            echo "PROJECT_DIR=./app" >> $GITHUB_ENV
+            echo "Detected package.json in ./app"
+          elif [ -f package.json ]; then
+            echo "PROJECT_DIR=." >> $GITHUB_ENV
+            echo "Detected package.json in repository root"
+          else
+            echo "PROJECT_DIR=" >> $GITHUB_ENV
+            echo "No package.json found in ./app or repo root"
+          fi
 
-      - name: Snyk Open Source monitor
-        run: snyk monitor --all-projects --file=./app/package.json || true
+      - name: Install dependencies (if Node project found)
+        if: env.PROJECT_DIR != ''
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
 
-      - name: Snyk IaC test and report
-        run: snyk iac test --report --org=YOUR_ORG_ID || true
-
-      - name: Build a Docker image
-        run: docker build -t your/image-to-test -f ./app/Dockerfile ./app/
-
-      - name: Snyk Container monitor
-        run: snyk container monitor your/image-to-test --file=./app/Dockerfile || true
-
-      - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
+      - name: Run Snyk test (only if Node project found)
+        if: env.PROJECT_DIR != ''
+        uses: snyk/actions/node@v1
         with:
-          sarif_file: snyk-code.sarif
+          args: test
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}

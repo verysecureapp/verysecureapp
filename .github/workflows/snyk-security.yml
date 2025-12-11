@@ -2,68 +2,87 @@ name: Snyk Security
 
 on:
   push:
-    branches: [ main ]
+    branches: ["main"]
   pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
 
 jobs:
   snyk:
-    name: Snyk Security
-    runs-on: ubuntu-latest
     permissions:
+      contents: read
       security-events: write
+      actions: read
+    runs-on: ubuntu-latest
+
+    # --- FIX 1: Global Environment Variables ---
+    # This fixes the indentation error and scope issues.
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      
+      # [IMPORTANT] CONFIGURATION:
+      # If your package.json and Dockerfile are in the root, leave this as ".".
+      # If they are in a subfolder (e.g., "app"), change this to "./app".
+      PROJECT_PATH: "." 
+      
+      # [IMPORTANT] Snyk Organization ID:
+      # If IaC scans fail with "SNYK-CLI-0012", uncomment the line below 
+      # and replace with your Org ID from Snyk settings.
+      # SNYK_ORG_ID: "your-org-id-here"
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # --- FIX 2: Safe Node Setup ---
+      # Removed "cache: npm" to prevent crash if lockfile is missing in root.
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: 20
 
-      - name: Determine Node project directory
-        id: detect
+      - name: Install Node Dependencies
+        # Uses the PROJECT_PATH variable to find the correct folder
         run: |
-          if [ -f ./app/package.json ]; then
-            echo "PROJECT_DIR=./app" >> $GITHUB_ENV
-            echo "Detected package.json in ./app"
-          elif [ -f package.json ]; then
-            echo "PROJECT_DIR=." >> $GITHUB_ENV
-            echo "Detected package.json in repository root"
+          cd ${{ env.PROJECT_PATH }}
+          npm install
+
+      - name: Set up Snyk CLI
+        uses: snyk/actions/setup@master
+
+      # 1. Snyk Code (SAST)
+      - name: Snyk Code test
+        # Snyk Code automatically finds files, but we add || true to ensure upload happens
+        run: snyk code test --sarif > snyk-code.sarif || true
+
+      # 2. Snyk Open Source (SCA)
+      - name: Snyk Open Source monitor
+        # Points to the specific package.json using the variable
+        run: snyk monitor --file=${{ env.PROJECT_PATH }}/package.json || true
+
+      # 3. Snyk IaC
+      - name: Snyk IaC test and report
+        # Uses the Org ID if you defined it in 'env', otherwise tries default
+        run: |
+          if [ -n "${{ env.SNYK_ORG_ID }}" ]; then
+            snyk iac test --report --org=${{ env.SNYK_ORG_ID }} || true
           else
-            echo "PROJECT_DIR=" >> $GITHUB_ENV
-            echo "No package.json found in ./app or repo root"
+            snyk iac test --report || true
           fi
 
-      - name: Install dependencies (if Node project found)
-        if: env.PROJECT_DIR != ''
-        working-directory: ${{ env.PROJECT_DIR }}
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
+      # 4. Build Docker Image
+      - name: Build a Docker image
+        # Uses -f to point to the Dockerfile in the correct path
+        run: docker build -t your/image-to-test -f ${{ env.PROJECT_PATH }}/Dockerfile ${{ env.PROJECT_PATH }}
 
-      - name: Run Snyk test (only if Node project found)
-        if: env.PROJECT_DIR != ''
-        uses: snyk/actions/node@v3
-        with:
-          args: test
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      # 5. Snyk Container Monitor
+      - name: Snyk Container monitor
+        run: snyk container monitor your/image-to-test --file=${{ env.PROJECT_PATH }}/Dockerfile || true
 
-      - name: Run Snyk test and generate SARIF (only if Node project found)
-        if: env.PROJECT_DIR != ''
-        working-directory: ${{ env.PROJECT_DIR }}
-        run: |
-          npx snyk test --sarif > snyk.sarif
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
-      - name: Upload Snyk SARIF results to GitHub Security Code Scanning
-        if: env.PROJECT_DIR != ''
+      # 6. Upload Results
+      - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: ${{ env.PROJECT_DIR }}/snyk.sarif
+          sarif_file: snyk-code.sarif

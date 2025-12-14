@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from .. import models, schemas
-from ..database import get_db
-from ..deps import get_current_user
+import models, schemas
+from database import get_db
+from deps import get_current_user
 
 router = APIRouter(prefix="/messages", tags=["messages"])
 

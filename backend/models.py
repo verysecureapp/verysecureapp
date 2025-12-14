@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, LargeBinary, String, Text
 from sqlalchemy.orm import relationship
 
-from .database import Base
+from database import Base
 
 
 def generate_otp_key(length: int) -> bytes:

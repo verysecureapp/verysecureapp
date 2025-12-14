@@ -19,7 +19,7 @@ import { LogoutButtonComponent } from './components/logout-button.component';
       }
 
       <!-- Header / Nav -->
-      <header class="navbar" *ngIf="(auth.isAuthenticated$ | async)">
+      <header class="navbar">
         <div class="nav-container">
           <a routerLink="/" class="brand">
             <span>Secure</span>Messenger
@@ -27,27 +27,35 @@ import { LogoutButtonComponent } from './components/logout-button.component';
 
           <!-- Desktop Nav -->
           <nav class="nav-links">
-            <a routerLink="/inbox" routerLinkActive="active-link" class="nav-link">Inbox</a>
-            <a routerLink="/send" routerLinkActive="active-link" class="nav-link">Send Message</a>
-            <a routerLink="/profile" routerLinkActive="active-link" class="nav-link">Profile</a>
-            <div class="nav-separator"></div>
-            <app-logout-button />
+            @if (auth.isAuthenticated$ | async) {
+              <a routerLink="/inbox" routerLinkActive="active-link" class="nav-link">Inbox</a>
+              <a routerLink="/send" routerLinkActive="active-link" class="nav-link">Send Message</a>
+              <a routerLink="/profile" routerLinkActive="active-link" class="nav-link">Profile</a>
+              <div class="nav-separator"></div>
+              <app-logout-button />
+            } @else {
+              <app-login-button />
+            }
           </nav>
 
-          <!-- Mobile Toggle -->
-          <button class="mobile-toggle" (click)="toggleMobileMenu()">
-            <span class="material-symbols-outlined">menu</span>
-          </button>
+          <!-- Mobile Toggle (only show if authenticated for now, or adapt for everyone) -->
+          @if (auth.isAuthenticated$ | async) {
+            <button class="mobile-toggle" (click)="toggleMobileMenu()">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+          }
         </div>
 
         <!-- Mobile Menu -->
-        <div class="mobile-menu" [class.open]="isMobileMenuOpen">
-          <a routerLink="/inbox" routerLinkActive="active-link" class="nav-link" (click)="closeMobileMenu()">Inbox</a>
-          <a routerLink="/send" routerLinkActive="active-link" class="nav-link" (click)="closeMobileMenu()">Send Message</a>
-          <a routerLink="/profile" routerLinkActive="active-link" class="nav-link" (click)="closeMobileMenu()">Profile</a>
-          <div class="nav-separator"></div>
-          <app-logout-button />
-        </div>
+        @if (auth.isAuthenticated$ | async) {
+            <div class="mobile-menu" [class.open]="isMobileMenuOpen">
+            <a routerLink="/inbox" routerLinkActive="active-link" class="nav-link" (click)="closeMobileMenu()">Inbox</a>
+            <a routerLink="/send" routerLinkActive="active-link" class="nav-link" (click)="closeMobileMenu()">Send Message</a>
+            <a routerLink="/profile" routerLinkActive="active-link" class="nav-link" (click)="closeMobileMenu()">Profile</a>
+            <div class="nav-separator"></div>
+            <app-logout-button />
+            </div>
+        }
       </header>
 
       <!-- Main Content -->
@@ -59,22 +67,8 @@ import { LogoutButtonComponent } from './components/logout-button.component';
           </div>
         }
 
-        <!-- Unauthenticated View -->
-        @if (!(auth.isLoading$ | async) && !(auth.isAuthenticated$ | async)) {
-          <div class="auth-container">
-            <div class="auth-card">
-              <h1 class="main-title">Secure Messenger</h1>
-              <p class="auth-subtitle">End-to-end encrypted messaging for everyone.</p>
-              <br>
-              <app-login-button />
-            </div>
-          </div>
-        }
-
-        <!-- Authenticated Content -->
-        @if (auth.isAuthenticated$ | async) {
-          <router-outlet></router-outlet>
-        }
+        <!-- Router Outlet (Always visible) -->
+        <router-outlet></router-outlet>
       </main>
     </div>
   `,

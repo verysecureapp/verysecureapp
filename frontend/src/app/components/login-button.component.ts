@@ -7,7 +7,7 @@ import { AuthService } from '@auth0/auth0-angular';
   template: `
     <button
       (click)="loginWithRedirect()"
-      class="button login"
+      class="nav-btn"
     >
       Log In
     </button>

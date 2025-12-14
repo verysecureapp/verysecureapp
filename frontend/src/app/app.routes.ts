@@ -3,6 +3,7 @@ import { authGuardFn } from '@auth0/auth0-angular';
 import { ProfileComponent } from './components/profile.component';
 import { InboxComponent } from './features/messages/inbox/inbox.component';
 import { SendMessageComponent } from './features/messages/send/send-message.component';
+import { HomeComponent } from './features/home/home.component';
 
 export const routes: Routes = [
     {
@@ -22,7 +23,6 @@ export const routes: Routes = [
     },
     {
         path: '',
-        redirectTo: '/profile',
-        pathMatch: 'full'
+        component: HomeComponent
     }
 ];

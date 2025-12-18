@@ -1,32 +1,95 @@
-import uvicorn
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from os import environ as env
+from flask import Flask, jsonify
+from flask_cors import CORS
+from dotenv import load_dotenv, find_dotenv
+from flasgger import Swagger
 
-import models
-from database import Base, engine
-from routers import auth, messages
+from models import db
+from validator import Auth0JWTBearerTokenValidator
+from auth import require_auth
+from routes.messages import messages_bp
 
-Base.metadata.create_all(bind=engine)
+# Load env variables
+ENV_FILE = find_dotenv()
+if ENV_FILE:
+    load_dotenv(ENV_FILE)
 
-app = FastAPI(title="Secure OTP Messenger", version="0.1.0")
+def create_app():
+    app = Flask(__name__)
+    CORS(app, resources={r"/*": {"origins": "*"}}) # Allow all by default for this stage, strict later
+    
+    swagger_config = {
+        "headers": [],
+        "specs": [
+            {
+                "endpoint": 'apispec_1',
+                "route": '/apispec_1.json',
+                "rule_filter": lambda rule: True,  # all in
+                "model_filter": lambda tag: True,  # all in
+            }
+        ],
+        "static_url_path": "/flasgger_static",
+        "swagger_ui": True,
+        "specs_route": "/apidocs/",
+        "securityDefinitions": {
+            "Bearer": {
+                "type": "apiKey",
+                "name": "Authorization",
+                "in": "header",
+                "description": "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\""
+            }
+        }
+    }
+    
+    Swagger(app, config=swagger_config)
+    
+    # DB Configuration
+    db_name = env.get("DB_NAME", "otpchat")
+    db_user = env.get("DB_USER", "appuser")
+    db_password = env.get("DB_PASSWORD", "apppassword")
+    db_host = env.get("DB_HOST", "db") # 'db' is the service name in docker-compose
+    
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}"
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+    # Initialize DB
+    db.init_app(app)
+    
+    # Configure Auth0 Validator
+    domain = env.get("AUTH0_DOMAIN")
+    audience = env.get("AUTH0_API_IDENTIFIER")
+    
+    if domain and audience:
+        try:
+            validator = Auth0JWTBearerTokenValidator(domain, audience)
+            require_auth.register_token_validator(validator)
+        except Exception as e:
+            print(f"WARNING: Failed to initialize Auth0 validator: {e}")
+            print("Auth0 integration will not work until valid credentials are provided and the domain is reachable.")
+    else:
+        print("WARNING: AUTH0_DOMAIN or AUTH0_API_IDENTIFIER not set.")
 
-app.include_router(auth.router)
-app.include_router(messages.router)
+    # Register Blueprints
+    app.register_blueprint(messages_bp, url_prefix='/messages')
+    
+    # Create tables (for simplicity in this task, usually do via migrations)
+    with app.app_context():
+        try:
+            db.create_all()
+        except Exception as e:
+            print(f"Error creating database tables: {e}")
 
+    @app.errorhandler(401)
+    def unauthorized(e):
+        return jsonify(error="Unauthorized"), 401
+        
+    @app.errorhandler(403)
+    def forbidden(e):
+        return jsonify(error="Forbidden"), 403
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+    return app
 
+app = create_app()
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
-
+    app.run(host="0.0.0.0", port=8000)

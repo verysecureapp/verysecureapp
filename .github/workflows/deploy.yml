@@ -1,0 +1,32 @@
+name: Deploy Docker App
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Semgrep SAST
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: p/owasp-top-ten
+          auditOn: push
+
+  deploy:
+    needs: security-scan      
+    runs-on: self-hosted       
+    
+    steps:
+      - name: Update en Restart Docker Containers
+        run: |
+          cd /home/githubrunner/verysecureapp
+          
+        
+          git pull origin main
+          
+          docker compose up -d --build
+          
+          docker image prune -f

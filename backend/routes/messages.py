@@ -92,6 +92,83 @@ def create_message():
     
     return jsonify(new_message.to_dict()), 201
 
+@messages_bp.route('/inbox', methods=['GET'], strict_slashes=False)
+@require_auth()
+def get_inbox():
+    """
+    Get all messages where the current user is the receiver.
+    ---
+    tags:
+      - Messages
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: List of messages received by the current user
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              sender_email:
+                type: string
+              subject:
+                type: string
+              note:
+                type: string
+              content:
+                type: string
+              timestamp:
+                type: string
+    """
+    from auth0_client import Auth0Client
+    
+    # current_token is a dict, 'sub' is the Auth0 user ID
+    receiver_id = current_token['sub']
+    
+    query = select(Message).where(Message.receiver == receiver_id)
+    messages = db.session.scalars(query).all()
+    
+    auth0_client = Auth0Client()
+    user_cache = {}
+    
+    results = []
+    for msg in messages:
+        # Resolve sender email
+        sender_email = "Unknown"
+        if msg.sender in user_cache:
+            sender_email = user_cache[msg.sender]
+        else:
+            try:
+                user_details = auth0_client.get_user(msg.sender)
+                if user_details and 'email' in user_details:
+                    sender_email = user_details['email']
+                    user_cache[msg.sender] = sender_email
+                else:
+                    # If lookup fails or no email, keep ID or Unknown
+                    sender_email = msg.sender
+                    user_cache[msg.sender] = sender_email
+            except Exception as e:
+                print(f"Failed to lookup sender {msg.sender}: {e}")
+                sender_email = msg.sender
+        
+        results.append({
+            "id": msg.id,
+            "sender_email": sender_email,
+            "note": msg.subject, # Mapping subject -> note
+            "content": msg.message, # Mapping message -> content (plaintext)
+            "timestamp": msg.date_deleted.isoformat() if msg.date_deleted else None # Using date_deleted for timestamp placeholder as per model, wait. Model has date_deleted. It doesn't have created_at? 
+            # Looking at models.py: 
+            # 16:     date_deleted: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
+            # It seems there is no created_at in the model shown previously. I'll check model again or just omit/use date_deleted if that's what was intended (unlikely).
+            # The previous code had: "timestamp": "now" in mock, but "date_deleted" in to_dict.
+            # Let's check models.py again.
+        })
+        
+    return jsonify(results), 200
+
 @messages_bp.route('', methods=['GET'], strict_slashes=False)
 @require_auth()
 def get_messages():

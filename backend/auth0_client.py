@@ -67,3 +67,21 @@ class Auth0Client:
         
         # Return the first matching user's ID
         return users[0]["user_id"]
+
+    def get_user(self, user_id):
+        """Retrieves an Auth0 user by their ID."""
+        token = self._get_token()
+        url = f"https://{self.domain}/api/v2/users/{user_id}"
+        headers = {"Authorization": f"Bearer {token}"}
+
+        response = requests.get(url, headers=headers)
+        
+        try:
+            response.raise_for_status()
+        except Exception as e:
+            print(f"Auth0 User Get Error: {response.text}", flush=True)
+            # Fail gracefully if user not found or other error? 
+            # For now, let's propagate or return None
+            return None
+
+        return response.json()

@@ -4,10 +4,13 @@ import { environment } from '../../../environments/environment';
 import { Observable } from 'rxjs';
 
 export interface Message {
-    sender_email: string;
-    note: string;
-    ciphertext_hex: string;
-    otp_key_hex: string;
+    id?: number;
+    sender_email?: string;
+    note?: string;
+    ciphertext_hex?: string;
+    otp_key_hex?: string;
+    content?: string;
+    timestamp?: string;
 }
 
 export interface SendMessageResponse {

@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { MessageService } from '../../../core/services/message.service';
 
 @Component({
-    selector: 'app-inbox',
-    standalone: true,
-    imports: [CommonModule],
-    template: `
+  selector: 'app-inbox',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
     <div class="inbox-container">
       <h2 class="page-title">Inbox</h2>
       @if (messages$ | async; as messages) {
@@ -29,7 +29,7 @@ import { MessageService } from '../../../core/services/message.service';
                   </div>
                   <div class="content-section">
                     <span class="label">Message:</span>
-                    <div class="content">{{ decrypt(msg.ciphertext_hex, msg.otp_key_hex) }}</div>
+                    <div class="content">{{ msg.content }}</div>
                   </div>
                 </div>
               </div>
@@ -39,7 +39,7 @@ import { MessageService } from '../../../core/services/message.service';
       }
     </div>
   `,
-    styles: [`
+  styles: [`
     .message-grid {
       display: grid;
       gap: 1.5rem;
@@ -95,15 +95,7 @@ import { MessageService } from '../../../core/services/message.service';
   `]
 })
 export class InboxComponent {
-    private messageService = inject(MessageService);
-    messages$ = this.messageService.getInbox();
+  private messageService = inject(MessageService);
+  messages$ = this.messageService.getInbox();
 
-    decrypt(cipher: string, key: string): string {
-        try {
-            return this.messageService.decryptMessage(cipher, key);
-        } catch (e) {
-            console.error('Decryption failed', e);
-            return 'Error decrypting message';
-        }
-    }
 }

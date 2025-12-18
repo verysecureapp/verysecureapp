@@ -1,0 +1,15 @@
+services:
+  test-web:
+    image: traefik/whoami
+    container_name: test-app-container
+    ports:
+      - "85:80"
+    restart: always
+    # Let op: We stellen GEEN poorten open naar de host (geen 'ports' sectie).
+    # De communicatie verloopt via het interne docker-netwerk.
+    networks:
+      - proxy-network
+
+networks:
+  proxy-network:
+    external: true

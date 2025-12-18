@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MessageService } from '../../../core/services/message.service';
+import { EncryptionService } from '../../../core/services/encryption.service';
 
 @Component({
   selector: 'app-inbox',
@@ -233,4 +234,3 @@ export class InboxComponent {
     return this.errorCache.get(id);
   }
 }
-import { EncryptionService } from '../../../core/services/encryption.service';

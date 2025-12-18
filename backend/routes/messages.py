@@ -85,7 +85,7 @@ def create_message():
     except Exception as e:
         print(f"Error looking up recipient: {e}", file=sys.stderr)
         traceback.print_exc()
-        return jsonify({"error": f"Failed to lookup recipient: {str(e)}"}), 500
+        return jsonify({"error": "Internal server error while looking up recipient."}), 500
 
     if not receiver_id:
         return jsonify({"message": "Message sent successfully"}), 201

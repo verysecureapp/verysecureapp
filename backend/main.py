@@ -18,30 +18,33 @@ def create_app():
     app = Flask(__name__)
     CORS(app, resources={r"/*": {"origins": "*"}}) # Allow all by default for this stage, strict later
     
-    swagger_config = {
-        "headers": [],
-        "specs": [
-            {
-                "endpoint": 'apispec_1',
-                "route": '/apispec_1.json',
-                "rule_filter": lambda rule: True,
-                "model_filter": lambda tag: True,
-            }
-        ],
-        "static_url_path": "/flasgger_static",
-        "swagger_ui": True,
-        "specs_route": "/apidocs/",
-        "securityDefinitions": {
-            "Bearer": {
-                "type": "apiKey",
-                "name": "Authorization",
-                "in": "header",
-                "description": "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\""
+    
+    # Swagger config
+    if env.get("ENABLE_SWAGGER", "True").lower() == "true":
+        swagger_config = {
+            "headers": [],
+            "specs": [
+                {
+                    "endpoint": 'apispec_1',
+                    "route": '/apispec_1.json',
+                    "rule_filter": lambda rule: True,
+                    "model_filter": lambda tag: True,
+                }
+            ],
+            "static_url_path": "/flasgger_static",
+            "swagger_ui": True,
+            "specs_route": "/apidocs/",
+            "securityDefinitions": {
+                "Bearer": {
+                    "type": "apiKey",
+                    "name": "Authorization",
+                    "in": "header",
+                    "description": "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\""
+                }
             }
         }
-    }
-    
-    Swagger(app, config=swagger_config)
+        
+        Swagger(app, config=swagger_config)
     
     # DB Configuration
     db_name = env.get("DB_NAME", "otpchat")

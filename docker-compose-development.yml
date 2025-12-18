@@ -3,6 +3,8 @@ services:
     build: ./backend
     env_file:
       - ./backend/.env
+    environment:
+      ENABLE_SWAGGER: "true"
     ports:
       - "8000:8000"
     depends_on:

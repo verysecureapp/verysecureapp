@@ -3,9 +3,8 @@ services:
     build: ./backend
     env_file:
       - ./backend/.env
-    networks:
-      - db-net
-      - proxy-network # Port 8000 / api.verysecureapp.com
+    ports:
+      - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
@@ -22,23 +21,22 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-    networks:
-      - db-net # Port 3306
+    ports:
+      - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
       - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
   frontend:
     build: ./frontend
-    networks:
-      - proxy-network # Port 80 / verysecureapp.com
+    ports:
+      - "80:80"
     depends_on:
       - api
 
 volumes:
   db_data:
-
-
-networks:
-  db-net:
-  proxy-network:
-    external: true

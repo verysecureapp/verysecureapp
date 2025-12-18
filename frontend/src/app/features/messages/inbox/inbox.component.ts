@@ -91,6 +91,8 @@ import { EncryptionService } from '../../../core/services/encryption.service';
       margin-bottom: 1rem;
       padding-bottom: 0.75rem;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      flex-wrap: wrap;
+      gap: 0.5rem;
     }
     .sender-info {
       display: flex;
@@ -115,6 +117,7 @@ import { EncryptionService } from '../../../core/services/encryption.service';
       color: var(--text-primary);
       font-weight: 600;
       font-size: 0.95rem; /* Matched to look consistent */
+      word-break: break-all;
     }
     .timestamp {
       color: var(--text-secondary);

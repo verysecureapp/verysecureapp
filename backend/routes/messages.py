@@ -9,7 +9,38 @@ messages_bp = Blueprint('messages', __name__)
 @messages_bp.route('', methods=['POST'])
 @require_auth(None)
 def create_message():
-    """Create a new message."""
+    """
+    Create a new message.
+    ---
+    tags:
+      - Messages
+    parameters:
+      - in: body
+        name: body
+        schema:
+          type: object
+          required:
+            - receiver
+            - subject
+            - message
+          properties:
+            receiver:
+              type: string
+              description: The ID of the message receiver
+            subject:
+              type: string
+              description: Subject of the message
+            message:
+              type: string
+              description: Content of the message
+    security:
+      - Bearer: []
+    responses:
+      201:
+        description: Message created successfully
+      400:
+        description: Missing fields or input data
+    """
     data = request.get_json()
     if not data:
         return jsonify({"error": "No input data provided"}), 400
@@ -35,7 +66,42 @@ def create_message():
 @messages_bp.route('', methods=['GET'])
 @require_auth(None)
 def get_messages():
-    """Get all messages for a specific sender."""
+    """
+    Get all messages for a specific sender.
+    ---
+    tags:
+      - Messages
+    parameters:
+      - name: sender
+        in: query
+        type: string
+        required: true
+        description: The ID of the sender to retrieve messages for
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: List of messages
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              sender:
+                type: string
+              receiver:
+                type: string
+              subject:
+                type: string
+              message:
+                type: string
+              timestamp:
+                type: string
+      400:
+        description: Sender query parameter is required
+    """
     sender = request.args.get('sender')
     if not sender:
         return jsonify({"error": "Sender query parameter is required"}), 400

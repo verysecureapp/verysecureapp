@@ -63,8 +63,11 @@ def create_message():
             return jsonify({"error": f"Field '{field}' cannot be empty"}), 400
 
     # Specific Validation
-    email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
-    if not re.match(email_regex, data['recipient_email']):
+    email_regex = re.compile(
+        r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+"
+        r"@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$"
+    )
+    if not email_regex.fullmatch(data['recipient_email']):
         return jsonify({"error": "Invalid email format"}), 400
         
     if len(data['note']) > MAX_SUBJECT_LENGTH:

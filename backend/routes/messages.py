@@ -1,8 +1,9 @@
-from flask import Blueprint, request, jsonify, g
+from flask import Blueprint, request, jsonify
 import re
 from models import db, Message
 from auth import require_auth, current_token
 from sqlalchemy import select
+from auth0_client import Auth0Client
 
 messages_bp = Blueprint('messages', __name__)
 
@@ -131,7 +132,6 @@ def get_inbox():
               time_received:
                 type: string
     """
-    from auth0_client import Auth0Client
     
     # current_token is a dict, 'sub' is the Auth0 user ID
     receiver_id = current_token['sub']

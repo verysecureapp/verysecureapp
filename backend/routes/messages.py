@@ -99,7 +99,7 @@ def create_message():
     db.session.add(new_message)
     db.session.commit()
     
-    return jsonify(new_message.to_dict()), 201
+    return jsonify({"message": "Message sent successfully"}), 201
 
 @messages_bp.route('/inbox', methods=['GET'], strict_slashes=False)
 @require_auth()

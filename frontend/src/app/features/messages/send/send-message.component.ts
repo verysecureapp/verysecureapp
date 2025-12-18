@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MessageService } from '../../../core/services/message.service';
 import { Router } from '@angular/router';
+import { EncryptionService } from '../../../core/services/encryption.service';
 
 @Component({
   selector: 'app-send-message',
@@ -284,4 +285,3 @@ export class SendMessageComponent {
     // Could add a toast here
   }
 }
-import { EncryptionService } from '../../../core/services/encryption.service';

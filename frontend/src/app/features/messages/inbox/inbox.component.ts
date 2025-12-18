@@ -31,7 +31,15 @@ import { EncryptionService } from '../../../core/services/encryption.service';
                     <span class="label">From:</span>
                     <span class="sender">{{ msg.sender_email }}</span>
                   </div>
-                  <span class="timestamp">{{ msg.time_received | date:'short' }}</span>
+                  <div class="header-right">
+                    <span class="timestamp">{{ msg.time_received | date:'short' }}</span>
+                    <button class="delete-btn" (click)="onDelete(msg.id)" title="Delete Message">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                        </svg>
+                    </button>
+                  </div>
                 </div>
                 <div class="message-body">
                   <div class="note-section">
@@ -132,6 +140,29 @@ import { EncryptionService } from '../../../core/services/encryption.service';
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       flex-wrap: wrap;
       gap: 0.5rem;
+    }
+    .header-right {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .delete-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: 6px 10px;
+        border-radius: 6px;
+        line-height: 0;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .delete-btn:hover {
+        background: rgba(239, 68, 68, 0.2);
+        color: #f87171;
+        border-color: rgba(239, 68, 68, 0.3);
     }
     .sender-info {
       display: flex;
@@ -254,6 +285,23 @@ export class InboxComponent {
 
   onRefresh() {
     this.refreshTrigger.next();
+  }
+
+  onDelete(id: number | undefined) {
+    if (!id) return;
+
+    // In a real app, we might want to show a confirmation dialog here
+    if (confirm('Are you sure you want to delete this message?')) {
+      this.messageService.deleteMessage(id).subscribe({
+        next: () => {
+          this.onRefresh();
+        },
+        error: (err) => {
+          console.error('Failed to delete message', err);
+          alert('Failed to delete message');
+        }
+      });
+    }
   }
 
   onDecrypt(id: number | undefined, ciphertext: string | undefined, key: string) {

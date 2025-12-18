@@ -174,3 +174,43 @@ def get_inbox():
         
     return jsonify(results), 200
 
+
+@messages_bp.route('/<int:message_id>', methods=['DELETE'], strict_slashes=False)
+@require_auth()
+def delete_message(message_id):
+    """
+    Delete a message if the current user is the receiver.
+    ---
+    tags:
+      - Messages
+    parameters:
+      - in: path
+        name: message_id
+        type: integer
+        required: true
+        description: The ID of the message to delete
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: Message deleted successfully
+      404:
+        description: Message not found
+      403:
+        description: Permission denied
+    """
+    receiver_id = current_token['sub']
+    
+    # Query for the message ensuring the receiver matches the current user
+    msg = db.session.query(Message).filter_by(id=message_id, receiver=receiver_id).first()
+    
+    if not msg:
+        # Returns 404 if message doesn't exist OR if user is not the receiver
+        return jsonify({"error": "Message not found"}), 404
+        
+    db.session.delete(msg)
+    db.session.commit()
+    
+    return jsonify({"message": "Message deleted successfully"}), 200
+
+

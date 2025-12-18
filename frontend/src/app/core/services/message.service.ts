@@ -36,4 +36,8 @@ export class MessageService {
     getInbox(): Observable<Message[]> {
         return this.http.get<Message[]>(`${this.apiUrl}/messages/inbox`);
     }
+
+    deleteMessage(id: number): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/messages/${id}`);
+    }
 }

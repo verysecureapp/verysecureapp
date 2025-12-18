@@ -22,12 +22,12 @@ def create_message():
           required:
             - recipient_email
             - plaintext
-            - note
+            - subject
           properties:
             recipient_email:
               type: string
               description: The email of the message receiver
-            note:
+            subject:
               type: string
               description: Subject or note for the message
             plaintext:
@@ -46,7 +46,7 @@ def create_message():
         return jsonify({"error": "No input data provided"}), 400
     
     # Validation with frontend field names
-    required_fields = ['recipient_email', 'plaintext', 'note']
+    required_fields = ['recipient_email', 'plaintext', 'subject']
     
     MAX_SUBJECT_LENGTH = 255
     MAX_MESSAGE_LENGTH = 5000
@@ -70,8 +70,8 @@ def create_message():
     if not email_regex.fullmatch(data['recipient_email']):
         return jsonify({"error": "Invalid email format"}), 400
         
-    if len(data['note']) > MAX_SUBJECT_LENGTH:
-        return jsonify({"error": f"Note exceeds maximum length of {MAX_SUBJECT_LENGTH} characters"}), 400
+    if len(data['subject']) > MAX_SUBJECT_LENGTH:
+        return jsonify({"error": f"Subject exceeds maximum length of {MAX_SUBJECT_LENGTH} characters"}), 400
         
     if len(data['plaintext']) > MAX_MESSAGE_LENGTH:
         return jsonify({"error": f"Message content exceeds maximum length of {MAX_MESSAGE_LENGTH} characters"}), 400
@@ -95,7 +95,7 @@ def create_message():
     new_message = Message(
         sender=current_token['sub'], # Extract from JWT
         receiver=receiver_id,
-        subject=data['note'],
+        subject=data['subject'],
         message=data['plaintext']
     )
     
@@ -128,11 +128,9 @@ def get_inbox():
                 type: string
               subject:
                 type: string
-              note:
+              message:
                 type: string
-              content:
-                type: string
-              timestamp:
+              time_received:
                 type: string
     """
     from auth0_client import Auth0Client
@@ -168,8 +166,8 @@ def get_inbox():
         results.append({
             "id": msg.id,
             "sender_email": sender_email,
-            "note": msg.subject, # Mapping subject -> note
-            "content": msg.message, # Mapping message -> content (plaintext)
+            "subject": msg.subject,
+            "message": msg.message, # Mapping message -> message (plaintext)
             "timestamp": msg.date_deleted.isoformat() if msg.date_deleted else None # Using date_deleted for timestamp placeholder as per model, wait. Model has date_deleted. It doesn't have created_at? 
             # Looking at models.py: 
             # 16:     date_deleted: Mapped[DateTime] = mapped_column(DateTime, nullable=True)

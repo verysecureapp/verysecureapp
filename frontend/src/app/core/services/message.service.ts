@@ -6,11 +6,11 @@ import { Observable } from 'rxjs';
 export interface Message {
     id?: number;
     sender_email?: string;
-    note?: string;
+    subject?: string;
     ciphertext_hex?: string;
     otp_key_hex?: string;
-    content?: string;
-    timestamp?: string;
+    message?: string;
+    time_received?: string;
 }
 
 export interface SendMessageResponse {
@@ -25,11 +25,11 @@ export class MessageService {
     private http = inject(HttpClient);
     private apiUrl = environment.apiUri;
 
-    sendMessage(recipient_email: string, plaintext: string, note: string): Observable<SendMessageResponse> {
+    sendMessage(recipient_email: string, plaintext: string, subject: string): Observable<SendMessageResponse> {
         return this.http.post<SendMessageResponse>(`${this.apiUrl}/messages/`, {
             recipient_email,
             plaintext,
-            note
+            subject
         });
     }
 

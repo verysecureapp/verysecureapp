@@ -24,12 +24,12 @@ import { MessageService } from '../../../core/services/message.service';
                 </div>
                 <div class="message-body">
                   <div class="note-section">
-                    <span class="label">Note:</span>
-                    <span class="note-text">{{ msg.note || 'No note' }}</span>
+                    <span class="label">Subject:</span>
+                    <span class="note-text">{{ msg.subject || 'No subject' }}</span>
                   </div>
                   <div class="content-section">
                     <span class="label">Message:</span>
-                    <div class="content">{{ msg.content }}</div>
+                    <div class="content">{{ msg.message }}</div>
                   </div>
                 </div>
               </div>

@@ -28,11 +28,11 @@ import { Router } from '@angular/router';
         </div>
 
         <div class="form-group">
-          <label for="note">Note (Public)</label>
+          <label for="subject">Subject (Public)</label>
           <input 
-            id="note" 
+            id="subject" 
             type="text" 
-            formControlName="note" 
+            formControlName="subject" 
             placeholder="Brief subject or note..."
           >
         </div>
@@ -171,7 +171,7 @@ export class SendMessageComponent {
 
   messageForm = this.fb.group({
     recipient_email: ['', [Validators.required, Validators.email]],
-    note: [''],
+    subject: [''],
     plaintext: ['', [Validators.required, Validators.minLength(1)]]
   });
 
@@ -191,9 +191,9 @@ export class SendMessageComponent {
     this.statusMessage = '';
     this.isError = false;
 
-    const { recipient_email, plaintext, note } = this.messageForm.value;
+    const { recipient_email, plaintext, subject } = this.messageForm.value;
 
-    this.messageService.sendMessage(recipient_email!, plaintext!, note || '').subscribe({
+    this.messageService.sendMessage(recipient_email!, plaintext!, subject || '').subscribe({
       next: (res) => {
         this.isSubmitting = false;
         this.statusMessage = 'Message sent successfully!';

@@ -25,7 +25,8 @@ jobs:
           cd /home/githubrunner/verysecureapp
           
         
-          git pull origin main
+          git fetch origin main
+          git reset --hard origin/main
           
           docker compose up -d --build
           

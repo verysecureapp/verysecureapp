@@ -66,6 +66,17 @@ import { Router } from '@angular/router';
             {{ statusMessage }}
           </div>
         }
+
+        @if (generatedKey) {
+            <div class="key-display">
+                <h3>Encryption Key Generated!</h3>
+                <p>Please share this key securely with the recipient. It will NOT be stored and cannot be recovered.</p>
+                <div class="key-box">
+                    <code>{{ generatedKey }}</code>
+                    <button type="button" (click)="copyKey()" class="btn-copy">Copy</button>
+                </div>
+            </div>
+        }
       </form>
     </div>
   `,
@@ -162,11 +173,54 @@ import { Router } from '@angular/router';
       color: #f87171;
       border: 1px solid rgba(220, 38, 38, 0.2);
     }
+    .key-display {
+        margin-top: 2rem;
+        background: rgba(99, 102, 241, 0.1);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        padding: 1.5rem;
+        border-radius: 8px;
+    }
+    .key-display h3 {
+        margin: 0 0 0.5rem 0;
+        color: var(--accent-color);
+    }
+    .key-display p {
+        margin: 0 0 1rem 0;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
+    .key-box {
+        display: flex;
+        gap: 0.5rem;
+        background: rgba(0,0,0,0.3);
+        padding: 0.75rem;
+        border-radius: 6px;
+        align-items: center;
+    }
+    .key-box code {
+        flex: 1;
+        font-family: monospace;
+        word-break: break-all;
+        color: var(--text-primary);
+    }
+    .btn-copy {
+        background: rgba(255,255,255,0.1);
+        border: none;
+        color: var(--text-primary);
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-copy:hover {
+        background: rgba(255,255,255,0.2);
+    }
   `]
 })
 export class SendMessageComponent {
   private fb = inject(FormBuilder);
   private messageService = inject(MessageService);
+  private encryptionService = inject(EncryptionService);
   private router = inject(Router);
 
   messageForm = this.fb.group({
@@ -178,6 +232,7 @@ export class SendMessageComponent {
   isSubmitting = false;
   statusMessage = '';
   isError = false;
+  generatedKey = '';
 
   isFieldInvalid(fieldName: string): boolean {
     const field = this.messageForm.get(fieldName);
@@ -190,21 +245,43 @@ export class SendMessageComponent {
     this.isSubmitting = true;
     this.statusMessage = '';
     this.isError = false;
+    this.generatedKey = '';
 
     const { recipient_email, plaintext, subject } = this.messageForm.value;
 
-    this.messageService.sendMessage(recipient_email!, plaintext!, subject || '').subscribe({
-      next: (res) => {
-        this.isSubmitting = false;
-        this.statusMessage = 'Message sent successfully!';
-        this.messageForm.reset();
-        // Optional: Redirect to inbox or show success
-      },
-      error: (err) => {
-        this.isSubmitting = false;
-        this.isError = true;
-        this.statusMessage = 'Failed to send message: ' + (err.error?.detail || err.message);
-      }
-    });
+    try {
+      // 1. Generate Key
+      // Calculate length of plaintext in bytes for correct key length
+      const textBytes = new TextEncoder().encode(plaintext!);
+      const keyHex = this.encryptionService.generateKey(textBytes.length);
+
+      // 2. Encrypt
+      const cipherHex = this.encryptionService.encrypt(plaintext!, keyHex);
+
+      // 3. Send
+      this.messageService.sendMessage(recipient_email!, cipherHex, subject || '').subscribe({
+        next: (res) => {
+          this.isSubmitting = false;
+          this.statusMessage = 'Message sent successfully!';
+          this.generatedKey = keyHex;
+          this.messageForm.reset();
+        },
+        error: (err) => {
+          this.isSubmitting = false;
+          this.isError = true;
+          this.statusMessage = 'Failed to send message: ' + (err.error?.detail || err.message);
+        }
+      });
+    } catch (e: any) {
+      this.isSubmitting = false;
+      this.isError = true;
+      this.statusMessage = 'Encryption failed: ' + e.message;
+    }
+  }
+
+  copyKey() {
+    navigator.clipboard.writeText(this.generatedKey);
+    // Could add a toast here
   }
 }
+import { EncryptionService } from '../../../core/services/encryption.service';

@@ -25,31 +25,15 @@ export class MessageService {
     private http = inject(HttpClient);
     private apiUrl = environment.apiUri;
 
-    sendMessage(recipient_email: string, plaintext: string, subject: string): Observable<SendMessageResponse> {
+    sendMessage(recipient_email: string, message: string, subject: string): Observable<SendMessageResponse> {
         return this.http.post<SendMessageResponse>(`${this.apiUrl}/messages/`, {
             recipient_email,
-            plaintext,
+            message,
             subject
         });
     }
 
     getInbox(): Observable<Message[]> {
         return this.http.get<Message[]>(`${this.apiUrl}/messages/inbox`);
-    }
-
-    decryptMessage(cipherHex: string, keyHex: string): string {
-        const cipherMatch = cipherHex.match(/.{1,2}/g);
-        const keyMatch = keyHex.match(/.{1,2}/g);
-
-        if (!cipherMatch || !keyMatch) {
-            return 'Error: Invalid hex format';
-        }
-
-        const cipher = Uint8Array.from(cipherMatch.map((b) => parseInt(b, 16)));
-        const key = Uint8Array.from(keyMatch.map((b) => parseInt(b, 16)));
-
-        // XOR decryption
-        const plain = cipher.map((c, i) => c ^ key[i]);
-        return new TextDecoder().decode(plain);
     }
 }

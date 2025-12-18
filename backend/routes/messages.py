@@ -21,7 +21,7 @@ def create_message():
           type: object
           required:
             - recipient_email
-            - plaintext
+            - message
             - subject
           properties:
             recipient_email:
@@ -30,7 +30,7 @@ def create_message():
             subject:
               type: string
               description: Subject or note for the message
-            plaintext:
+            message:
               type: string
               description: Content of the message
     security:
@@ -45,7 +45,7 @@ def create_message():
     if not data:
         return jsonify({"error": "No input data provided"}), 400
     
-    required_fields = ['recipient_email', 'plaintext', 'subject']
+    required_fields = ['recipient_email', 'message', 'subject']
     
     MAX_SUBJECT_LENGTH = 255
     MAX_MESSAGE_LENGTH = 5000
@@ -72,7 +72,7 @@ def create_message():
     if len(data['subject']) > MAX_SUBJECT_LENGTH:
         return jsonify({"error": f"Subject exceeds maximum length of {MAX_SUBJECT_LENGTH} characters"}), 400
         
-    if len(data['plaintext']) > MAX_MESSAGE_LENGTH:
+    if len(data['message']) > MAX_MESSAGE_LENGTH:
         return jsonify({"error": f"Message content exceeds maximum length of {MAX_MESSAGE_LENGTH} characters"}), 400
 
     # Lookup receiver Auth0 ID
@@ -94,7 +94,7 @@ def create_message():
         sender=current_token['sub'],
         receiver=receiver_id,
         subject=data['subject'],
-        message=data['plaintext']
+        message=data['message']
     )
     
     db.session.add(new_message)

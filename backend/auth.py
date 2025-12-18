@@ -3,11 +3,8 @@ from authlib.oauth2.rfc7523 import JWTBearerTokenValidator
 
 class Auth0JWTBearerTokenValidator(JWTBearerTokenValidator):
     def __init__(self, domain, audience):
-        issuer = f"https://{domain}/"
-        jsonurl = f"https://{domain}/.well-known/jwks.json"
-        # We need to load keys... actually validator.py already has this class!
-        # Wait, main.py imports Auth0JWTBearerTokenValidator from validator.py
-        # So auth.py just needs to provide require_auth (ResourceProtector).
+        # This class is intentionally left as a stub; the actual implementation
+        # lives in validator.py. We keep the signature for compatibility.
         pass
 
 # The validator implementation is in validator.py, so we don't need to redefine it here

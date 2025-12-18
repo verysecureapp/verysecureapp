@@ -73,6 +73,8 @@ jobs:
       AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
     
     steps:
+      - name: Allow Git to use current directory
+        run: git config --global --add safe.directory /home/githubrunner/verysecureapp
       - name: Update en Restart Docker Containers
         run: |
           cd /home/githubrunner/verysecureapp

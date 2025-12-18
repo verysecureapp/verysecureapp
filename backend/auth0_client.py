@@ -1,7 +1,6 @@
 import os
 import requests
 import time
-from authlib.jose import jwt
 
 class Auth0Client:
     def __init__(self):

@@ -30,7 +30,7 @@ class Auth0Client:
         }
         headers = {'content-type': "application/json"}
 
-        response = requests.post(url, json=payload, headers=headers)
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
         
         try:
             response.raise_for_status()
@@ -52,7 +52,7 @@ class Auth0Client:
         headers = {"Authorization": f"Bearer {token}"}
         params = {"email": email}
 
-        response = requests.get(url, headers=headers, params=params)
+        response = requests.get(url, headers=headers, params=params, timeout=10)
         
         try:
             response.raise_for_status()
@@ -74,7 +74,7 @@ class Auth0Client:
         url = f"https://{self.domain}/api/v2/users/{user_id}"
         headers = {"Authorization": f"Bearer {token}"}
 
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=10)
         
         try:
             response.raise_for_status()

@@ -1,5 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { BehaviorSubject, timer } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { MessageService } from '../../../core/services/message.service';
 import { EncryptionService } from '../../../core/services/encryption.service';
 
@@ -9,7 +11,12 @@ import { EncryptionService } from '../../../core/services/encryption.service';
   imports: [CommonModule],
   template: `
     <div class="inbox-container">
-      <h2 class="page-title">Inbox</h2>
+      <div class="page-header">
+        <h2 class="page-title">Inbox</h2>
+        <button (click)="onRefresh()" class="refresh-btn" title="Refresh Messages">
+            &#x21bb; Refresh
+        </button>
+      </div>
       @if (messages$ | async; as messages) {
         @if (messages.length === 0) {
           <div class="empty-state">
@@ -66,6 +73,38 @@ import { EncryptionService } from '../../../core/services/encryption.service';
     </div>
   `,
   styles: [`
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    .page-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0;
+    }
+    .refresh-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: var(--text-primary);
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+    .refresh-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+    .refresh-btn:active {
+      transform: translateY(0);
+    }
     .message-grid {
       display: grid;
       gap: 1.5rem;
@@ -201,11 +240,21 @@ export class InboxComponent {
   private messageService = inject(MessageService);
   private encryptionService = inject(EncryptionService);
 
-  messages$ = this.messageService.getInbox();
+  private refreshTrigger = new BehaviorSubject<void>(undefined);
+
+  messages$ = this.refreshTrigger.pipe(
+    switchMap(() => timer(0, 30000).pipe(
+      switchMap(() => this.messageService.getInbox())
+    ))
+  );
 
   // Local state for decrypted messages and errors
   private decryptedCache = new Map<number | undefined, string>();
   private errorCache = new Map<number | undefined, string>();
+
+  onRefresh() {
+    this.refreshTrigger.next();
+  }
 
   onDecrypt(id: number | undefined, ciphertext: string | undefined, key: string) {
     if (!id || !ciphertext) return;

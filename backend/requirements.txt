@@ -7,3 +7,4 @@ cryptography
 requests
 flask-cors
 flasgger
+python-jose

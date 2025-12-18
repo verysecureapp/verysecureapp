@@ -1,13 +1,12 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from models import db, Message
-from auth import require_auth
+from auth import require_auth, current_token
 from sqlalchemy import select
-from authlib.integrations.flask_oauth2 import current_token
 
 messages_bp = Blueprint('messages', __name__)
 
-@messages_bp.route('', methods=['POST'])
-@require_auth(None)
+@messages_bp.route('', methods=['POST'], strict_slashes=False)
+@require_auth()
 def create_message():
     """
     Create a new message.
@@ -20,17 +19,17 @@ def create_message():
         schema:
           type: object
           required:
-            - receiver
-            - subject
-            - message
+            - recipient_email
+            - plaintext
+            - note
           properties:
-            receiver:
+            recipient_email:
               type: string
-              description: The ID of the message receiver
-            subject:
+              description: The email of the message receiver
+            note:
               type: string
-              description: Subject of the message
-            message:
+              description: Subject or note for the message
+            plaintext:
               type: string
               description: Content of the message
     security:
@@ -45,17 +44,17 @@ def create_message():
     if not data:
         return jsonify({"error": "No input data provided"}), 400
     
-    # Simple validation
-    required_fields = ['receiver', 'subject', 'message']
+    # Validation with frontend field names
+    required_fields = ['recipient_email', 'plaintext', 'note']
     for field in required_fields:
         if field not in data:
             return jsonify({"error": f"Missing field: {field}"}), 400
 
     new_message = Message(
         sender=current_token['sub'], # Extract from JWT
-        receiver=data['receiver'],
-        subject=data['subject'],
-        message=data['message']
+        receiver=data['recipient_email'],
+        subject=data['note'],
+        message=data['plaintext']
     )
     
     db.session.add(new_message)
@@ -63,8 +62,8 @@ def create_message():
     
     return jsonify(new_message.to_dict()), 201
 
-@messages_bp.route('', methods=['GET'])
-@require_auth(None)
+@messages_bp.route('', methods=['GET'], strict_slashes=False)
+@require_auth()
 def get_messages():
     """
     Get all messages for a specific sender.

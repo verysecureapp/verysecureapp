@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify, g
+import re
 from models import db, Message
 from auth import require_auth, current_token
 from sqlalchemy import select
@@ -46,9 +47,31 @@ def create_message():
     
     # Validation with frontend field names
     required_fields = ['recipient_email', 'plaintext', 'note']
+    
+    MAX_SUBJECT_LENGTH = 255
+    MAX_MESSAGE_LENGTH = 5000
+    
     for field in required_fields:
         if field not in data:
             return jsonify({"error": f"Missing field: {field}"}), 400
+        
+        val = data[field]
+        if not isinstance(val, str):
+            return jsonify({"error": f"Field '{field}' must be a string"}), 400
+            
+        if not val.strip():
+            return jsonify({"error": f"Field '{field}' cannot be empty"}), 400
+
+    # Specific Validation
+    email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+    if not re.match(email_regex, data['recipient_email']):
+        return jsonify({"error": "Invalid email format"}), 400
+        
+    if len(data['note']) > MAX_SUBJECT_LENGTH:
+        return jsonify({"error": f"Note exceeds maximum length of {MAX_SUBJECT_LENGTH} characters"}), 400
+        
+    if len(data['plaintext']) > MAX_MESSAGE_LENGTH:
+        return jsonify({"error": f"Message content exceeds maximum length of {MAX_MESSAGE_LENGTH} characters"}), 400
 
     # Lookup receiver Auth0 ID
     from auth0_client import Auth0Client
@@ -63,21 +86,7 @@ def create_message():
         return jsonify({"error": f"Failed to lookup recipient: {str(e)}"}), 500
 
     if not receiver_id:
-        # Security: Do not reveal that the user does not exist.
-        # Return success but do not save the message.
-        print(f"Silently ignored message to non-existent email: {data['recipient_email']}")
-        # Return a fake message object that resembles a real one to avoid leaking info
-        fake_response = {
-            "id": 0, # Or some indicator, or just omit if frontend doesn't strictly need it to be non-zero
-            "sender": current_token['sub'],
-            "receiver": "hidden",
-            "subject": data['note'],
-            "message": "encrypted",
-            "timestamp": "now" 
-        }
-        # Ideally we return exactly what new_message.to_dict() would return but keeping it minimal is safer
-        # Let's try to match the structure roughly or just standard success.
-        # The frontend expects the new message back? 
+        # Return a generic success response to avoid leaking whether the recipient exists.
         return jsonify({"message": "Message sent successfully"}), 201
 
     new_message = Message(
@@ -137,7 +146,6 @@ def get_inbox():
     results = []
     for msg in messages:
         # Resolve sender email
-        sender_email = "Unknown"
         if msg.sender in user_cache:
             sender_email = user_cache[msg.sender]
         else:

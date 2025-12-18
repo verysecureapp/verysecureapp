@@ -1,4 +1,4 @@
-name: Bandit
+name: SAST scanning
 on:
   push:
     branches: [ "main" ,"sast-testing"]

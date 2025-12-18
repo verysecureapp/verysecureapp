@@ -80,8 +80,6 @@ class Auth0Client:
             response.raise_for_status()
         except Exception as e:
             print(f"Auth0 User Get Error: {response.text}", flush=True)
-            # Fail gracefully if user not found or other error? 
-            # For now, let's propagate or return None
             return None
 
         return response.json()

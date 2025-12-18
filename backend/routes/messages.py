@@ -45,7 +45,6 @@ def create_message():
     if not data:
         return jsonify({"error": "No input data provided"}), 400
     
-    # Validation with frontend field names
     required_fields = ['recipient_email', 'plaintext', 'subject']
     
     MAX_SUBJECT_LENGTH = 255
@@ -89,11 +88,10 @@ def create_message():
         return jsonify({"error": f"Failed to lookup recipient: {str(e)}"}), 500
 
     if not receiver_id:
-        # Return a generic success response to avoid leaking whether the recipient exists.
         return jsonify({"message": "Message sent successfully"}), 201
 
     new_message = Message(
-        sender=current_token['sub'], # Extract from JWT
+        sender=current_token['sub'],
         receiver=receiver_id,
         subject=data['subject'],
         message=data['plaintext']
@@ -156,7 +154,6 @@ def get_inbox():
                     sender_email = user_details['email']
                     user_cache[msg.sender] = sender_email
                 else:
-                    # If lookup fails or no email, keep ID or Unknown
                     sender_email = msg.sender
                     user_cache[msg.sender] = sender_email
             except Exception as e:

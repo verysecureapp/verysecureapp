@@ -24,8 +24,8 @@ def create_app():
             {
                 "endpoint": 'apispec_1',
                 "route": '/apispec_1.json',
-                "rule_filter": lambda rule: True,  # all in
-                "model_filter": lambda tag: True,  # all in
+                "rule_filter": lambda rule: True,
+                "model_filter": lambda tag: True,
             }
         ],
         "static_url_path": "/flasgger_static",
@@ -47,7 +47,7 @@ def create_app():
     db_name = env.get("DB_NAME", "otpchat")
     db_user = env.get("DB_USER", "appuser")
     db_password = env.get("DB_PASSWORD", "apppassword")
-    db_host = env.get("DB_HOST", "db") # 'db' is the service name in docker-compose
+    db_host = env.get("DB_HOST", "db")
     
     app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -72,7 +72,7 @@ def create_app():
     # Register Blueprints
     app.register_blueprint(messages_bp, url_prefix='/messages')
     
-    # Create tables (for simplicity in this task, usually do via migrations)
+    # Create tables
     with app.app_context():
         try:
             db.create_all()

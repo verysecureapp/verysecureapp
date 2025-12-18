@@ -153,6 +153,9 @@ def get_inbox():
                 if user_details and 'email' in user_details:
                     sender_email = user_details['email']
                     user_cache[msg.sender] = sender_email
+                elif user_details is None:
+                    sender_email = "deleted user"
+                    user_cache[msg.sender] = sender_email
                 else:
                     sender_email = msg.sender
                     user_cache[msg.sender] = sender_email

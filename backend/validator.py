@@ -1,5 +1,4 @@
-import json
-from urllib.request import urlopen
+import requests
 
 from authlib.oauth2.rfc7523 import JWTBearerTokenValidator
 from authlib.jose.rfc7517.jwk import JsonWebKey
@@ -7,10 +6,10 @@ from authlib.jose.rfc7517.jwk import JsonWebKey
 class Auth0JWTBearerTokenValidator(JWTBearerTokenValidator):
     def __init__(self, domain, audience):
         issuer = f"https://{domain}/"
-        jsonurl = urlopen(f"{issuer}.well-known/jwks.json")
-        public_key = JsonWebKey.import_key_set(
-            json.loads(jsonurl.read())
-        )
+        url = f"{issuer}.well-known/jwks.json"
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        public_key = JsonWebKey.import_key_set(response.json())
         super(Auth0JWTBearerTokenValidator, self).__init__(
             public_key
         )

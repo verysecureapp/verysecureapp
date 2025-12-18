@@ -16,7 +16,19 @@ if ENV_FILE:
 
 def create_app():
     app = Flask(__name__)
-    CORS(app, resources={r"/*": {"origins": "*"}}) # Allow all by default for this stage, strict later
+    
+    # Define allowed origins
+    allowed_origins = [
+        "https://verysecureapp.com",
+        "https://www.verysecureapp.com"
+    ]
+    
+    # Allow extending via env var
+    env_origins = env.get("CORS_ALLOWED_ORIGINS")
+    if env_origins:
+        allowed_origins.extend([o.strip() for o in env_origins.split(",")])
+
+    CORS(app, resources={r"/*": {"origins": allowed_origins}}, supports_credentials=True)
     
     
     # Swagger config

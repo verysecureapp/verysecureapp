@@ -12,6 +12,7 @@ services:
       AUTH0_CLIENT_SECRET: ${AUTH0_CLIENT_SECRET}
       ENABLE_SWAGGER: "true"
       HOST_IP: "0.0.0.0"
+      CORS_ALLOWED_ORIGINS: "http://localhost,http://localhost:4200,http://localhost:8000"
     ports:
       - "8000:8000"
     depends_on:

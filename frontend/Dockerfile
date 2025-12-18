@@ -23,7 +23,14 @@ COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html
 # Copy custom Nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+# Copy entrypoint script and template
+COPY docker-entrypoint.sh /
+COPY src/assets/env.template.js /usr/share/nginx/html/assets/env.template.js
+
+RUN chmod +x /docker-entrypoint.sh
+
 # Expose port 80
 EXPOSE 80
 
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]

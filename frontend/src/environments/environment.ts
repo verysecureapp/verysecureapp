@@ -1,9 +1,9 @@
 export const environment = {
   production: false,
   auth0: {
-    domain: 'dev-cybersecadvanced.eu.auth0.com',
-    clientId: 'C9VujfG8zjPbXOJFm5HMnhqm7p6K2gIV',
-    audience: 'https://OTPSecureMessenger/'
+    domain: (window as any).__env?.auth0?.domain,
+    clientId: (window as any).__env?.auth0?.clientId,
+    audience: (window as any).__env?.auth0?.audience
   },
-  apiUri: 'http://localhost:8000'
+  apiUri: (window as any).__env?.apiUri
 };

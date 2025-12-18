@@ -43,6 +43,11 @@ services:
     build: ./frontend
     networks:
       - proxy-network # Port 80 / verysecureapp.com
+    environment:
+      AUTH0_DOMAIN: ${AUTH0_DOMAIN}
+      AUTH0_CLIENT_ID: ${AUTH0_CLIENT_ID}
+      AUTH0_API_IDENTIFIER: ${AUTH0_API_IDENTIFIER}
+      API_URI: ${API_URI}
     depends_on:
       - api
 

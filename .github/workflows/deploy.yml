@@ -27,6 +27,7 @@ jobs:
           AUTH0_API_IDENTIFIER: ${{ secrets.AUTH0_API_IDENTIFIER }}
           AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
           AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
+          API_URI: ${{ secrets.API_URI }}
 
       - name: Build Services
         run: docker compose build
@@ -40,7 +41,8 @@ jobs:
           AUTH0_API_IDENTIFIER: ${{ secrets.AUTH0_API_IDENTIFIER }}
           AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
           AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
-
+          API_URI: ${{ secrets.API_URI }}
+          
   # JOB 2: Security Scan (SAST)
   # Gebeurt alleen als het bouwen van de code succesvol is
   security-scan:
@@ -71,6 +73,7 @@ jobs:
       AUTH0_API_IDENTIFIER: ${{ secrets.AUTH0_API_IDENTIFIER }}
       AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
       AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
+      API_URI: ${{ secrets.API_URI }}
     
     steps:
       - name: Allow Git to use current directory

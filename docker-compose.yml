@@ -12,6 +12,7 @@ services:
       AUTH0_CLIENT_ID: ${AUTH0_CLIENT_ID}
       AUTH0_CLIENT_SECRET: ${AUTH0_CLIENT_SECRET}
       ENABLE_SWAGGER: "false"
+      HOST_IP: "0.0.0.0"
     networks:
       - db-net
       - proxy-network # Port 8000 / api.verysecureapp.com

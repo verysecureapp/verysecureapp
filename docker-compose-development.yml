@@ -5,6 +5,7 @@ services:
       - ./backend/.env
     environment:
       ENABLE_SWAGGER: "true"
+      HOST_IP: "0.0.0.0"
     ports:
       - "8000:8000"
     depends_on:

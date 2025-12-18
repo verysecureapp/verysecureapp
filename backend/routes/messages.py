@@ -167,13 +167,9 @@ def get_inbox():
             "id": msg.id,
             "sender_email": sender_email,
             "subject": msg.subject,
-            "message": msg.message, # Mapping message -> message (plaintext)
-            "timestamp": msg.date_deleted.isoformat() if msg.date_deleted else None # Using date_deleted for timestamp placeholder as per model, wait. Model has date_deleted. It doesn't have created_at? 
-            # Looking at models.py: 
-            # 16:     date_deleted: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
-            # It seems there is no created_at in the model shown previously. I'll check model again or just omit/use date_deleted if that's what was intended (unlikely).
-            # The previous code had: "timestamp": "now" in mock, but "date_deleted" in to_dict.
-            # Let's check models.py again.
+            "message": msg.message,
+            "time_received": msg.time_received.isoformat() + 'Z'
+            # TODO: Implement time_deleted "time_deleted": msg.time_deleted.isoformat() if msg.time_deleted else None
         })
         
     return jsonify(results), 200

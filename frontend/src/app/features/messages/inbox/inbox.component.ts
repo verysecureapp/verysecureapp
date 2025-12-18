@@ -21,6 +21,7 @@ import { MessageService } from '../../../core/services/message.service';
                 <div class="message-header">
                   <span class="label">From:</span>
                   <span class="sender">{{ msg.sender_email }}</span>
+                  <span class="timestamp">{{ msg.time_received | date:'short' }}</span>
                 </div>
                 <div class="message-body">
                   <div class="note-section">
@@ -74,6 +75,11 @@ import { MessageService } from '../../../core/services/message.service';
     .sender {
       color: var(--text-primary);
       font-weight: 600;
+    }
+    .timestamp {
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      margin-left: auto;
     }
     .note-section {
       margin-bottom: 1rem;

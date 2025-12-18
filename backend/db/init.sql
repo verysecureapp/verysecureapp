@@ -4,5 +4,6 @@ CREATE TABLE IF NOT EXISTS messages (
     receiver VARCHAR(255) NOT NULL,
     subject VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
-    date_deleted DATETIME DEFAULT NULL
+    time_received DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    time_deleted DATETIME DEFAULT NULL
 );

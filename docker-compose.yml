@@ -26,6 +26,11 @@ services:
     volumes:
       - db_data:/var/lib/mysql
       - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
   frontend:
     build: ./frontend
     ports:

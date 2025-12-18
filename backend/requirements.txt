@@ -1,0 +1,8 @@
+flask
+authlib
+python-dotenv
+flask-sqlalchemy
+pymysql
+cryptography
+requests
+flask-cors

@@ -50,9 +50,39 @@ def create_message():
         if field not in data:
             return jsonify({"error": f"Missing field: {field}"}), 400
 
+    # Lookup receiver Auth0 ID
+    from auth0_client import Auth0Client
+    import traceback
+    import sys
+    try:
+        auth0_client = Auth0Client()
+        receiver_id = auth0_client.get_user_by_email(data['recipient_email'])
+    except Exception as e:
+        print(f"Error looking up recipient: {e}", file=sys.stderr)
+        traceback.print_exc()
+        return jsonify({"error": f"Failed to lookup recipient: {str(e)}"}), 500
+
+    if not receiver_id:
+        # Security: Do not reveal that the user does not exist.
+        # Return success but do not save the message.
+        print(f"Silently ignored message to non-existent email: {data['recipient_email']}")
+        # Return a fake message object that resembles a real one to avoid leaking info
+        fake_response = {
+            "id": 0, # Or some indicator, or just omit if frontend doesn't strictly need it to be non-zero
+            "sender": current_token['sub'],
+            "receiver": "hidden",
+            "subject": data['note'],
+            "message": "encrypted",
+            "timestamp": "now" 
+        }
+        # Ideally we return exactly what new_message.to_dict() would return but keeping it minimal is safer
+        # Let's try to match the structure roughly or just standard success.
+        # The frontend expects the new message back? 
+        return jsonify({"message": "Message sent successfully"}), 201
+
     new_message = Message(
         sender=current_token['sub'], # Extract from JWT
-        receiver=data['recipient_email'],
+        receiver=receiver_id,
         subject=data['note'],
         message=data['plaintext']
     )

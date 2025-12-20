@@ -22,7 +22,8 @@
               {
                 "glob": "**/*",
                 "input": "public"
-              }
+              },
+              "src/favicon.svg"
             ],
             "styles": [
               "src/styles.css"

@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BehaviorSubject, timer } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { switchMap, tap, finalize } from 'rxjs/operators';
 import { MessageService } from '../../../core/services/message.service';
 import { EncryptionService } from '../../../core/services/encryption.service';
 
@@ -10,7 +10,7 @@ import { EncryptionService } from '../../../core/services/encryption.service';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="inbox-container">
+    <div class="inbox-container" style="position: relative; min-height: 200px;">
       <div class="page-header">
         <h2 class="page-title">Inbox</h2>
         <button (click)="onRefresh()" class="refresh-btn" title="Refresh Messages">
@@ -77,6 +77,11 @@ import { EncryptionService } from '../../../core/services/encryption.service';
             }
           </div>
         }
+      }
+      @if (isLoading) {
+        <div class="loading-overlay">
+            <div class="spinner"></div>
+        </div>
       }
     </div>
   `,
@@ -265,9 +270,32 @@ import { EncryptionService } from '../../../core/services/encryption.service';
         from { opacity: 0; transform: translateY(5px); }
         to { opacity: 1; transform: translateY(0); }
     }
+
+    .loading-overlay {
+        position: absolute;
+        top: 80px; /* Position below the header */
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        z-index: 10;
+        pointer-events: none; /* Allow clicking through if needed, though usually we wait */
+    }
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(255, 255, 255, 0.1);
+        border-left-color: var(--accent-color, #6366f1);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
   `]
 })
 export class InboxComponent {
+  isLoading = true;
   private messageService = inject(MessageService);
   private encryptionService = inject(EncryptionService);
 
@@ -275,7 +303,12 @@ export class InboxComponent {
 
   messages$ = this.refreshTrigger.pipe(
     switchMap(() => timer(0, 30000).pipe(
-      switchMap(() => this.messageService.getInbox())
+      tap(i => {
+        if (i === 0) this.isLoading = true;
+      }),
+      switchMap(() => this.messageService.getInbox().pipe(
+        finalize(() => this.isLoading = false)
+      ))
     ))
   );
 
